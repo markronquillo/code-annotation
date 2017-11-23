@@ -169,7 +169,9 @@ if (typeof JSON !== "object") {
     }
 })();
 
-
+/**
+ * Setup require function for modularity
+ */
 (function() {
     var 
         // = [StripeCheckout, require]
@@ -194,10 +196,17 @@ if (typeof JSON !== "object") {
             var modules = {},
                 cache = {};
 
+            /**
+             * 
+             * @param string name 
+             * @param string root 
+             */
             var requireRelative = function(name, root) {
+
                 var path = expand(root, name),
                     indexPath = expand(path, "./index"),
                     module, fn;
+
                 module = cache[path] || cache[indexPath];
                 if (module) {
                     return module
@@ -216,6 +225,11 @@ if (typeof JSON !== "object") {
                 }
             };
 
+            /**
+             * 
+             * @param string root 
+             * @param string name 
+             */
             var expand = function(root, name) {
                 var results = [],
                     parts, part;
@@ -256,7 +270,11 @@ if (typeof JSON !== "object") {
     }
 })();
 
-
+/**
+ * Require module 'vendor/cookie'
+ * 
+ * TODO: 
+ */
 StripeCheckout.require.define({
     "vendor/cookie": function(exports, require, module) {
         var cookie = {};
@@ -331,53 +349,75 @@ StripeCheckout.require.define({
         module.exports = cookie
     }
 });
+
+/**
+ * Require 'vendor/ready' module
+ * 
+ * Initial guess: 
+ */
 StripeCheckout.require.define({
     "vendor/ready": function(exports, require, module) {
         ! function(name, definition) {
-            if (typeof module != "undefined") module.exports = definition();
-            else if (typeof define == "function" && typeof define.amd == "object") define(definition);
-            else this[name] = definition()
-        }("domready", function(ready) {
-            var fns = [],
-                fn, f = false,
-                doc = document,
-                testEl = doc.documentElement,
-                hack = testEl.doScroll,
-                domContentLoaded = "DOMContentLoaded",
-                addEventListener = "addEventListener",
-                onreadystatechange = "onreadystatechange",
-                readyState = "readyState",
-                loadedRgx = hack ? /^loaded|^c/ : /^loaded|c/,
-                loaded = loadedRgx.test(doc[readyState]);
+            if (typeof module != "undefined") 
+                module.exports = definition();
+            else if (typeof define == "function" && typeof define.amd == "object") 
+                define(definition);
+            else 
+                this[name] = definition()
+        }(
+            "domready", 
+            function(ready) {
+                var fns = [],
+                    fn, f = false,
+                    doc = document,
+                    testEl = doc.documentElement,
+                    hack = testEl.doScroll,
+                    domContentLoaded = "DOMContentLoaded",
+                    addEventListener = "addEventListener",
+                    onreadystatechange = "onreadystatechange",
+                    readyState = "readyState",
+                    loadedRgx = hack ? /^loaded|^c/ : /^loaded|c/,
+                    loaded = loadedRgx.test(doc[readyState]);
 
-            function flush(f) {
-                loaded = 1;
-                while (f = fns.shift()) f()
-            }
-            doc[addEventListener] && doc[addEventListener](domContentLoaded, fn = function() {
-                doc.removeEventListener(domContentLoaded, fn, f);
-                flush()
-            }, f);
-            hack && doc.attachEvent(onreadystatechange, fn = function() {
-                if (/^c/.test(doc[readyState])) {
-                    doc.detachEvent(onreadystatechange, fn);
-                    flush()
+                function flush(f) {
+                    loaded = 1;
+                    while (f = fns.shift()) f()
                 }
-            });
-            return ready = hack ? function(fn) {
-                self != top ? loaded ? fn() : fns.push(fn) : function() {
-                    try {
-                        testEl.doScroll("left")
-                    } catch (e) {
-                        return setTimeout(function() {
-                            ready(fn)
-                        }, 50)
+
+                doc[addEventListener] && 
+                    doc[addEventListener]( domContentLoaded, fn = function() {
+                        doc.removeEventListener(domContentLoaded, fn, f);
+                        flush()
+                    }, f);
+
+                hack && doc.attachEvent(onreadystatechange, fn = function() {
+                    if (/^c/.test(doc[readyState])) {
+                        doc.detachEvent(onreadystatechange, fn);
+                        flush()
                     }
-                    fn()
-                }()
-            } : function(fn) {
-                loaded ? fn() : fns.push(fn)
-            }
+                });
+
+                return ready = 
+                        hack 
+                            ? function(fn) {
+                                self != top 
+                                    ? loaded 
+                                    ? fn() 
+                                    : fns.push(fn) 
+                                    : function() {
+                                        try {
+                                            testEl.doScroll("left")
+                                        } catch (e) {
+                                            return setTimeout(function() {
+                                                ready(fn)
+                                            }, 50)
+                                        }
+                                        fn()
+                                    }()
+                            } 
+                            : function(fn) {
+                                loaded ? fn() : fns.push(fn)
+                            }
         })
     }
 });
@@ -399,6 +439,10 @@ StripeCheckout.require.define({
     }
 }).call(this);
 
+/**
+ * Require 'lib/helpers' modules
+ * 
+ */
 StripeCheckout.require.define({
     "lib/helpers": function(exports, require, module) {
         (function() {
